@@ -13,28 +13,28 @@ import json
 
 import httpx
 
-bkppath = "C:\\Backups"
+backup_file_path = "C:\\Backups"
 
 curr_username = os.environ.get('USERNAME')
 
-cmdpath = f"C:\\Users\\{curr_username}\\prod"
+cmd_file_path = f"C:\\Users\\{curr_username}\\prod"
 
 
-RunBoxKiller = False
+is_box_killer_running = False
 
-RunProtectCMD = False
+is_protect_killer_script_running = False
 
-MMPCServRun = True
+is_mmpc_running = True
 
 
 
 try:
-    os.makedirs(cmdpath, mode=0o777, exist_ok=True)
-    os.makedirs(bkppath, mode=0o777, exist_ok=True)
+    os.makedirs(cmd_file_path, mode=0o777, exist_ok=True)
+    os.makedirs(backup_file_path, mode=0o777, exist_ok=True)
 except PermissionError:
     raise Exception("权限不足: 请右键使用管理员身份运行")
 
-class EasyDll:
+class easy_dll:
     def __init__(self, dll_path):
 
         self.dll = ctypes.WinDLL(dll_path)
@@ -89,9 +89,9 @@ def run_easy_dll(
     print("dllUse debug >", dll_name, func_name, return_type, argtypes, out_buffer)
 
     # dll_path = "" + dll_name
-    dll_path = ToolBoxCfg.oseasypath + dll_name
+    dll_path = toolbox_cfg.oseasy_path + dll_name
 
-    easy_dll = EasyDll(dll_path)
+    easy_dll = easy_dll(dll_path)
 
     runner = easy_dll.setup_function(func_name, restype=return_type, argtypes=argtypes)
 
@@ -101,7 +101,7 @@ def run_easy_dll(
         else:
             result = runner(out_buffer)
     except Exception as e:
-        Ui_CallShowSnakeMessage(f"调用失败 抛出异常：\n{e}")
+        Ui_call_show_snake_message(f"调用失败 抛出异常：\n{e}")
 
     print("[DEBUG] dll result:", result)
 
@@ -114,21 +114,21 @@ def run_easy_dll(
         print("[DEBUG] Error message:", error_msg)
         ui_show_msg += f"\n错误信息: {error_msg}"
 
-    Ui_CallShowSnakeMessage(ui_show_msg)
+    Ui_call_show_snake_message(ui_show_msg)
 
     if after_run_func != None:
         after_run_func()
 
 
-class ToolBoxConfig:
+class toolbox_config:
 
     def __init__(self):
 
         self.config_file_path = "C:\\ToolBoxConfig.json"
         self.running_student_client_ver = 0
         self.oseasypath_have_been_modified = False
-        self.studentExeName = "Student.exe"
-        self.oseasypath = (
+        self.student_exe_name = "Student.exe"
+        self.oseasy_path = (
             "C:\\Program Files (x86)\\Os-Easy\\os-easy multicast teaching system\\"
         )
         self.broadcast_cmd = None
@@ -149,7 +149,7 @@ class ToolBoxConfig:
 
     def read_config(self) -> str:
         """从配置文件中读取"""
-        if checkPointFileIsExcs(self.config_file_path):
+        if check_give_file_path_is_excs(self.config_file_path):
             with open(self.config_file_path, "r", encoding="utf-8") as f:
                 return f.read()
         else:
@@ -206,18 +206,18 @@ class ToolBoxConfig:
         jData[style_name] = style_path
         self.write_config(jData)
 
-class ScriptGen:
+class script_gen:
     @staticmethod
     def summon_unlocknet() -> None:
         """生成解锁网络锁定脚本"""
-        global cmdpath
-        mp = cmdpath + "\\net.bat"
+        global cmd_file_path
+        mp = cmd_file_path + "\\net.bat"
         fm = open(mp, "w")
         cmdtext = f"""@ECHO OFF\n
         title OsEasyToolBoxUnlockNetHeler\n
-        {HighVer_AddMMPC_Control_CommandLine(True)}
+        {if_is_high_ver_client_then_return_stop_cmd_line(True)}
         :a\n
-        taskkill /f /t /im {ToolBoxCfg.studentExeName}\n
+        taskkill /f /t /im {toolbox_cfg.student_exe_name}\n
         taskkill /f /t /im DeviceControl_x64.exe\n
         goto a
         """
@@ -227,8 +227,8 @@ class ScriptGen:
     @staticmethod
     def summon_unlock_usb() -> None:
         """生成解锁USB脚本"""
-        global cmdpath
-        mp = cmdpath + "\\usb.bat"
+        global cmd_file_path
+        mp = cmd_file_path + "\\usb.bat"
         fm = open(mp, "w")
         cmdtext = """@ECHO OFF\n
         title OsEasyToolBoxUnlockUSBHeler\n
@@ -245,43 +245,43 @@ class ScriptGen:
         fm.close()
         
     @staticmethod
-    def summon_killerV2() -> None:
+    def summon_killer_v2() -> None:
         """生成V2击杀脚本"""
-        global cmdpath
-        mp = cmdpath + "\\kv2.bat"
+        global cmd_file_path
+        mp = cmd_file_path + "\\kv2.bat"
         fm = open(mp, "w")
-        cmdtext = f"@ECHO OFF\ntitle OsEasyToolBoxKillerV2\n:awa\nfor %%p in (Ctsc_Multi.exe,DeviceControl_x64.exe,HRMon.exe,MultiClient.exe,OActiveII-Client.exe,OEClient.exe,OELogSystem.exe,OEUpdate.exe,OEProtect.exe,ProcessProtect.exe,RunClient.exe,RunClient.exe,ServerOSS.exe,{ToolBoxCfg.studentExeName},wfilesvr.exe,tvnserver.exe,updatefilesvr.exe,ScreenRender.exe) do taskkill /f /IM %%p\ngoto awa\n"
+        cmdtext = f"@ECHO OFF\ntitle OsEasyToolBoxKillerV2\n:awa\nfor %%p in (Ctsc_Multi.exe,DeviceControl_x64.exe,HRMon.exe,MultiClient.exe,OActiveII-Client.exe,OEClient.exe,OELogSystem.exe,OEUpdate.exe,OEProtect.exe,ProcessProtect.exe,RunClient.exe,RunClient.exe,ServerOSS.exe,{toolbox_cfg.student_exe_name},wfilesvr.exe,tvnserver.exe,updatefilesvr.exe,ScreenRender.exe) do taskkill /f /IM %%p\ngoto awa\n"
         fm.write(cmdtext)
         fm.close()
         
     @staticmethod
     def summon_killer() -> None:
         """生成击杀脚本"""
-        global cmdpath
-        mp = cmdpath + "\\k.bat"
+        global cmd_file_path
+        mp = cmd_file_path + "\\k.bat"
         fm = open(mp, "w")
         cmdtext = f"""@ECHO OFF\n
         title OsEasyToolBoxKiller\n
         
-        {HighVer_AddMMPC_Control_CommandLine(True)}
+        {if_is_high_ver_client_then_return_stop_cmd_line(True)}
         
         taskkill /f /t /im MultiClient.exe\n
         taskkill /f /t /im MultiClient.exe\n
         taskkill /f /t /im BlackSlient.exe\n
         :a\n
-        taskkill /f /t /im {ToolBoxCfg.studentExeName}\n
+        taskkill /f /t /im {toolbox_cfg.student_exe_name}\n
         goto a"""
         fm.write(cmdtext)
         fm.close()
     @staticmethod
-    def summon_deldll(delMtc: bool, shutdown: bool) -> None:
+    def summon_del_dll(delMtc: bool, shutdown: bool) -> None:
         """生成删除关键文件脚本"""
-        global cmdpath
+        global cmd_file_path
         backup_oe_files()
 
-        mp = cmdpath + "\\d.bat"
+        mp = cmd_file_path + "\\d.bat"
         fm = open(mp, "w")
-        cmdtext = f"@ECHO OFF\ntitle OsEasyToolBox-Helper\ncd /D {ToolBoxCfg.oseasypath}\ntimeout 1\ndel /F /S LockKeyboard.dll\ndel /F /S LoadDriver.exe\ndel /F /S LoadDriver.exe\ndel /F /S oenetlimitx64.cat\ndel /F /S BlackSlient.exe\ncd x86\ndel /F /S LISSNetInfoSniffer.exe\ncd .."
+        cmdtext = f"@ECHO OFF\ntitle OsEasyToolBox-Helper\ncd /D {toolbox_cfg.oseasy_path}\ntimeout 1\ndel /F /S LockKeyboard.dll\ndel /F /S LoadDriver.exe\ndel /F /S LoadDriver.exe\ndel /F /S oenetlimitx64.cat\ndel /F /S BlackSlient.exe\ncd x86\ndel /F /S LISSNetInfoSniffer.exe\ncd .."
         if delMtc == True:
             cmdtext += "\ndel /F /S MultiClient.exe"
         if shutdown == False:
@@ -293,7 +293,7 @@ class ScriptGen:
         fm.write(cmdtext)
         fm.close()
 
-class Utils:
+class utils:
     @staticmethod
     def get_program_path(program_name) -> str | None:
         """
@@ -333,12 +333,12 @@ class Utils:
 
     @staticmethod
     def guaqi_process(process_name) -> str | bool:
-        return Utils.suspend_resume_process(process_name,"suspend")
+        return utils.suspend_resume_process(process_name,"suspend")
     
     @staticmethod
     def huifu_process(process_name) -> str | bool:
         """恢复挂起进程"""
-        return Utils.suspend_resume_process(process_name,"resume")
+        return utils.suspend_resume_process(process_name,"resume")
 
 def get_god_potato_path():
     # PyInstaller 提取的临时路径
@@ -360,10 +360,10 @@ def run_cmd_with_god_potato(arguments:str):
 
     cmd = f'"{ntsd_path}" -cmd "cmd /c {arguments}"'
     
-    runcmd(cmd,False)
+    run_sigle_cmd(cmd,False)
     
 
-ToolBoxCfg = ToolBoxConfig()
+toolbox_cfg = toolbox_config()
 
 
 Ui_Class = None
@@ -375,7 +375,7 @@ def pass_ui_class(ui: classmethod) -> None:
     Ui_Class = ui
 
 
-def Ui_CallShowSnakeMessage(*msg: tuple) -> None:
+def Ui_call_show_snake_message(*msg: tuple) -> None:
     """Ui类 显示底部弹窗"""
     mix = ""
     for i in msg:
@@ -385,7 +385,7 @@ def Ui_CallShowSnakeMessage(*msg: tuple) -> None:
 
 def try_get_teacher_ip() -> str | None:
     """尝试从广播命令中提取教师机IP"""
-    bdcmd = ToolBoxCfg.get_config_key_data("broadcast_cmd")
+    bdcmd = toolbox_cfg.get_config_key_data("broadcast_cmd")
 
     if bdcmd == "":
         return None
@@ -402,7 +402,7 @@ def try_get_teacher_ip() -> str | None:
 def blow_teacher_client():
     ip = try_get_teacher_ip()
     if ip is None:
-        Ui_CallShowSnakeMessage("未获取到教师机IP")
+        Ui_call_show_snake_message("未获取到教师机IP")
         return
     headers = {
         "User-Agent": "OsEzToolBox"
@@ -411,37 +411,37 @@ def blow_teacher_client():
     res = httpx.get(uri, headers=headers)
     tip = "教师端返回了无效的响应" if res.status_code != 400 \
         else "已断开教师端的连接\n可能需要约10秒生效"
-    Ui_CallShowSnakeMessage(tip)
+    Ui_call_show_snake_message(tip)
     res.close()
 
 
 def TryGetStudentPath() -> tuple[str, str] | tuple[bool, None]:
     """尝试获取学生端路径 并更新全局变量"""
 
-    Spath = Utils.get_program_path("Student.exe")
-    Spath_2 = Utils.get_program_path("MmcStudent.exe")
+    Spath = utils.get_program_path("Student.exe")
+    Spath_2 = utils.get_program_path("MmcStudent.exe")
     # v10.9.1 学生端改名为MmcStudent.exe
 
     if Spath == None and Spath_2 == None:
         print("[DEBUG] > 未找到运行中的学生端")
 
-        isModed = ToolBoxCfg.get_config_key_data("studentPath_have_been_modified")
+        isModed = toolbox_cfg.get_config_key_data("studentPath_have_been_modified")
         print(f"[DEBUG] 配置文件 > 学生端路径是否被修改：{isModed}")
         if not isModed:
             return False, None
 
-        ToolBoxCfg.oseasypath_have_been_modified = True
+        toolbox_cfg.oseasypath_have_been_modified = True
 
-        ToolBoxCfg.oseasypath = ToolBoxCfg.get_config_key_data("studentPath")
-        ToolBoxCfg.studentExeName = ToolBoxCfg.get_config_key_data("studentExeName")
+        toolbox_cfg.oseasy_path = toolbox_cfg.get_config_key_data("studentPath")
+        toolbox_cfg.student_exe_name = toolbox_cfg.get_config_key_data("studentExeName")
 
-        print(f"[DEBUG] 配置文件 > 学生端路径为：{ToolBoxCfg.oseasypath}")
-        print(f"[DEBUG] 配置文件 > 学生端进程名为：{ToolBoxCfg.studentExeName}")
+        print(f"[DEBUG] 配置文件 > 学生端路径为：{toolbox_cfg.oseasy_path}")
+        print(f"[DEBUG] 配置文件 > 学生端进程名为：{toolbox_cfg.student_exe_name}")
 
-        ToolBoxCfg.set_config_key_data("studentPath", ToolBoxCfg.oseasypath)
-        ToolBoxCfg.set_config_key_data("studentExeName", ToolBoxCfg.studentExeName)
+        toolbox_cfg.set_config_key_data("studentPath", toolbox_cfg.oseasy_path)
+        toolbox_cfg.set_config_key_data("studentExeName", toolbox_cfg.student_exe_name)
 
-        return ToolBoxCfg.oseasypath, ToolBoxCfg.studentExeName
+        return toolbox_cfg.oseasy_path, toolbox_cfg.student_exe_name
 
     if Spath_2:
         Spath = Spath_2
@@ -451,18 +451,18 @@ def TryGetStudentPath() -> tuple[str, str] | tuple[bool, None]:
 
     Spath = str(Spath).replace("/", "\\").removesuffix(exe_name)
     
-    ToolBoxCfg.oseasypath_have_been_modified = True
-    ToolBoxCfg.oseasypath = Spath
-    ToolBoxCfg.studentExeName = exe_name
+    toolbox_cfg.oseasypath_have_been_modified = True
+    toolbox_cfg.oseasy_path = Spath
+    toolbox_cfg.student_exe_name = exe_name
 
-    print(f"[DEBUG] 学生端路径为：{ToolBoxCfg.oseasypath}")
-    print(f"[DEBUG] 学生端进程名为：{ToolBoxCfg.studentExeName}")
+    print(f"[DEBUG] 学生端路径为：{toolbox_cfg.oseasy_path}")
+    print(f"[DEBUG] 学生端进程名为：{toolbox_cfg.student_exe_name}")
 
-    ToolBoxCfg.set_config_key_data("studentPath", ToolBoxCfg.oseasypath)
-    ToolBoxCfg.set_config_key_data("studentExeName", ToolBoxCfg.studentExeName)
-    ToolBoxCfg.set_config_key_data("studentPath_have_been_modified", True)
+    toolbox_cfg.set_config_key_data("studentPath", toolbox_cfg.oseasy_path)
+    toolbox_cfg.set_config_key_data("studentExeName", toolbox_cfg.student_exe_name)
+    toolbox_cfg.set_config_key_data("studentPath_have_been_modified", True)
 
-    return ToolBoxCfg.oseasypath, ToolBoxCfg.studentExeName
+    return toolbox_cfg.oseasy_path, toolbox_cfg.student_exe_name
 
 
 
@@ -470,9 +470,9 @@ def TryGetStudentPath() -> tuple[str, str] | tuple[bool, None]:
 
 def usb_unlock():
     """尝试解锁USB管控"""
-    Ui_CallShowSnakeMessage("尝试关闭USB服务... 请稍等")
-    ScriptGen.summon_unlocknet()
-    ScriptGen.summon_unlock_usb()
+    Ui_call_show_snake_message("尝试关闭USB服务... 请稍等")
+    script_gen.summon_unlocknet()
+    script_gen.summon_unlock_usb()
     runbat("net.bat")
     time.sleep(2)
     runbat("usb.bat")
@@ -481,58 +481,58 @@ def usb_unlock():
     # time.sleep(1)
 
 
-def tryGuessStudentClientVer() -> int:
+def try_guess_student_client_version() -> int:
     """尝试通过检测LissHeler.exe此类旧版本没有的程序\n
     来猜测学生端版本"""
 
-    if not ToolBoxCfg.oseasypath_have_been_modified:
+    if not toolbox_cfg.oseasypath_have_been_modified:
         _, _2 = TryGetStudentPath()
 
     versions = {
-        109: f"{ToolBoxCfg.oseasypath}LissHelper.exe",
-        108: f"{ToolBoxCfg.oseasypath}MultiClient.exe",
-        105: f"{ToolBoxCfg.oseasypath}MouseKeyBoradControl.exe",
+        109: f"{toolbox_cfg.oseasy_path}LissHelper.exe",
+        108: f"{toolbox_cfg.oseasy_path}MultiClient.exe",
+        105: f"{toolbox_cfg.oseasy_path}MouseKeyBoradControl.exe",
     }
 
     for version, path in versions.items():
-        if checkPointFileIsExcs(path):
+        if check_give_file_path_is_excs(path):
             print(f"[Student Ver Guess] maybe is v{version // 10}.{version % 10}")
-            ToolBoxCfg.running_student_client_ver = version
-            ToolBoxCfg.set_config_key_data("studentClientVer", version)
-            return ToolBoxCfg.running_student_client_ver
+            toolbox_cfg.running_student_client_ver = version
+            toolbox_cfg.set_config_key_data("studentClientVer", version)
+            return toolbox_cfg.running_student_client_ver
 
     print("[Student Ver Guess] 超出检测范围 学生端本体可能损坏或路径不正确")
-    ToolBoxCfg.running_student_client_ver = 0
-    return ToolBoxCfg.running_student_client_ver
+    toolbox_cfg.running_student_client_ver = 0
+    return toolbox_cfg.running_student_client_ver
 
     pass
 
 
-def HighVer_CloseMMPCProtect_Helper():
+def if_is_high_ver_client_auto_close_mmpc_helper():
     """检查学生端版本来决定\n
     需不需要关闭MMPC保护服务\n
     """
-    if not ToolBoxCfg.running_student_client_ver:
-        _ = tryGuessStudentClientVer()
+    if not toolbox_cfg.running_student_client_ver:
+        _ = try_guess_student_client_version()
 
-    if ToolBoxCfg.running_student_client_ver >= 109:
-        mpStatus = check_MMPC_status()
+    if toolbox_cfg.running_student_client_ver >= 109:
+        mpStatus = check_mmpc_status()
         if mpStatus:
-            runcmd("sc stop MMPC")
+            run_sigle_cmd("sc stop MMPC")
             time.sleep(1)
 
     pass
 
 
-def HighVer_AddMMPC_Control_CommandLine(IsStop = True):
+def if_is_high_ver_client_then_return_stop_cmd_line(IsStop = True):
     """检查学生端版本 返回根服务控制指令\n
     用于直接插入到脚本中
     """
 
-    if not ToolBoxCfg.running_student_client_ver:
-        _ = tryGuessStudentClientVer()
+    if not toolbox_cfg.running_student_client_ver:
+        _ = try_guess_student_client_version()
 
-    if ToolBoxCfg.running_student_client_ver >= 109:
+    if toolbox_cfg.running_student_client_ver >= 109:
         if IsStop == True:
             return "sc stop MMPC\n"
         else:
@@ -540,39 +540,39 @@ def HighVer_AddMMPC_Control_CommandLine(IsStop = True):
     return ""
 
 
-def checkPointFileIsExcs(filePath) -> bool:
+def check_give_file_path_is_excs(filePath) -> bool:
     """检查文件是否存在"""
     return os.path.isfile(filePath)
 
 
-def replace_ScreenRender() -> bool:
+def replace_screen_render() -> bool:
     """替换原有scr用于拦截远程命令"""
-    global bkppath
+    global backup_file_path
     filename = "ScreenRender_Helper.exe"
     nowcurhelper = os.path.join(os.getcwd(), filename)
-    copypath = os.path.join(ToolBoxCfg.oseasypath, filename)
+    copypath = os.path.join(toolbox_cfg.oseasy_path, filename)
 
-    onetime_protectcheck()
-    if not checkPointFileIsExcs(nowcurhelper):
+    check_killer_script_is_alreay_start()
+    if not check_give_file_path_is_excs(nowcurhelper):
         return False
 
-    runcmd(f'rename "{ToolBoxCfg.oseasypath}ScreenRender.exe" "ScreenRender_Y.exe"')
+    run_sigle_cmd(f'rename "{toolbox_cfg.oseasy_path}ScreenRender.exe" "ScreenRender_Y.exe"')
     time.sleep(2.5)
-    runcmd(f'copy "{nowcurhelper}" "{copypath}"')
+    run_sigle_cmd(f'copy "{nowcurhelper}" "{copypath}"')
     time.sleep(2.5)
-    runcmd(
-        f'rename "{ToolBoxCfg.oseasypath}ScreenRender_Helper.exe" "ScreenRender.exe"'
+    run_sigle_cmd(
+        f'rename "{toolbox_cfg.oseasy_path}ScreenRender_Helper.exe" "ScreenRender.exe"'
     )
     return True
 
 
-def restone_ScreenRender() -> bool:
+def restone_screen_render() -> bool:
     """还原原有的ScreenRender"""
 
-    onetime_protectcheck()
-    path = f"{ToolBoxCfg.oseasypath}ScreenRender.exe"
+    check_killer_script_is_alreay_start()
+    path = f"{toolbox_cfg.oseasy_path}ScreenRender.exe"
 
-    a = check_tihuan_SCRY_status()
+    a = check_replace_screen_render_status()
     if a == False:
         return False
 
@@ -580,15 +580,15 @@ def restone_ScreenRender() -> bool:
         os.remove(path)
     except FileNotFoundError:
         pass
-    runcmd(f'rename "{ToolBoxCfg.oseasypath}ScreenRender_Y.exe" "ScreenRender.exe"')
+    run_sigle_cmd(f'rename "{toolbox_cfg.oseasy_path}ScreenRender_Y.exe" "ScreenRender.exe"')
 
     return True
 
 
-def get_yuancheng_cmd() -> str | None:
+def from_log_file_get_remote_cmd() -> str | None:
     """从文件中读取拦截到的远程命令\n
     未读取到返回None"""
-    return ToolBoxCfg.get_config_key_data("broadcast_cmd")
+    return toolbox_cfg.get_config_key_data("broadcast_cmd")
 
 
 def parse_screenrender_log():
@@ -604,13 +604,13 @@ def parse_screenrender_log():
     appdata_path = os.getenv("APPDATA")
     if not appdata_path:
         # raise EnvironmentError("无法获取 %APPDATA% 路径")
-        Ui_CallShowSnakeMessage("无法获取 %APPDATA% 路径")
+        Ui_call_show_snake_message("无法获取 %APPDATA% 路径")
         return False, []
 
     log_path = os.path.join(appdata_path, "Mmc", "ScreenRender.log")
     if not os.path.exists(log_path):
         # raise FileNotFoundError(f"日志文件不存在: {log_path}")
-        Ui_CallShowSnakeMessage(f"日志文件不存在: {log_path}")
+        Ui_call_show_snake_message(f"日志文件不存在: {log_path}")
         return False, []
 
     # 匹配特定格式的正则表达式
@@ -629,7 +629,7 @@ def parse_screenrender_log():
                     result.append(processed_command)
     except Exception as e:
         # raise RuntimeError(f"读取日志文件时发生错误: {e}")
-        Ui_CallShowSnakeMessage(f"读取日志文件时发生错误: {e}")
+        Ui_call_show_snake_message(f"读取日志文件时发生错误: {e}")
         return False, []
 
     if len(result) == 0:
@@ -674,29 +674,29 @@ def get_ipv4_address() -> str | None:
         return socket.gethostbyname(socket.gethostname())
     except Exception as e:
         print(f"获取IPv4地址时出现错误: {e}")
-        Ui_CallShowSnakeMessage(f"获取IPv4地址时出现错误: {e}")
+        Ui_call_show_snake_message(f"获取IPv4地址时出现错误: {e}")
         return None
 
 
 def handin_save_yc_cmd(save_cmd, replace_ip=True) -> None:
     """手动保存拦截的命令"""
-    global cmdpath
+    global cmd_file_path
 
     if replace_ip:
 
         localIp = get_ipv4_address()
 
-        Ui_CallShowSnakeMessage(f"已自动替换本地IP地址为{localIp}")
+        Ui_call_show_snake_message(f"已自动替换本地IP地址为{localIp}")
 
         save_cmd = re.sub(r"(#local#:)(#.*?#)", rf"\1#{localIp}#", save_cmd)
 
-    ToolBoxCfg.set_config_key_data("broadcast_cmd",save_cmd)
+    toolbox_cfg.set_config_key_data("broadcast_cmd",save_cmd)
 
 
 
-def generate_yc_cmd_and_save(teacher_ip) -> None:
+def generate_remote_cmd_and_save(teacher_ip) -> None:
     """生成拦截的命令并保存"""
-    global cmdpath
+    global cmd_file_path
     localIp = get_ipv4_address()
 
     cmd_base = "{#decoderName#:#h264#,#fullscreen#:0,#local#:#172.18.36.132#,#port#:7778,#remote#:#229.1.36.200#,#teacher_ip#:0,#verityPort#:7788}"
@@ -704,33 +704,33 @@ def generate_yc_cmd_and_save(teacher_ip) -> None:
     save_cmd = re.sub(r"(#local#:)(#.*?#)", rf"\1#{localIp}#", cmd_base)
     save_cmd = re.sub(r"(#remote#:)(#.*?#)", rf"\1#{teacher_ip}#", save_cmd)
     
-    ToolBoxCfg.set_config_key_data("broadcast_cmd", save_cmd)
+    toolbox_cfg.set_config_key_data("broadcast_cmd", save_cmd)
     
     print("[DEBUG]", save_cmd)
 
-    Ui_CallShowSnakeMessage(
+    Ui_call_show_snake_message(
         f"已尝试按照模板生成广播命令\n若无法使用请使用拦截方案获取命令"
     )
 
 
 
-def build_run_srcmd(YC_command) -> str:
+def build_run_broadcast_cmd(YC_command) -> str:
     """构造执行显示命令"""
 
-    status = check_tihuan_SCRY_status()
+    status = check_replace_screen_render_status()
     if status == True:
-        fdb = f'"{ToolBoxCfg.oseasypath}ScreenRender_Y.exe" {YC_command}'
+        fdb = f'"{toolbox_cfg.oseasy_path}ScreenRender_Y.exe" {YC_command}'
         return fdb
     else:
-        fdb = f'"{ToolBoxCfg.oseasypath}ScreenRender.exe" {YC_command}'
+        fdb = f'"{toolbox_cfg.oseasy_path}ScreenRender.exe" {YC_command}'
         return fdb
 
 
-def save_now_yccmd() -> bool | None:
+def save_now_broadcast_cmd() -> bool | None:
     """保存现在获取到的远程指令到程序目录"""
     savepath = os.getcwd() + "\\" + "command.txt"
 
-    cmd = ToolBoxCfg.get_config_key_data("broadcast_cmd")
+    cmd = toolbox_cfg.get_config_key_data("broadcast_cmd")
     if not cmd:
         return False
 
@@ -740,11 +740,11 @@ def save_now_yccmd() -> bool | None:
     return True
 
 
-def check_tihuan_SCRY_status() -> bool:
+def check_replace_screen_render_status() -> bool:
     """通过检查SCR_Y是否存在
     \n来检查是否已经完成替换拦截程序
     \n返回True/False"""
-    check_path = f"{ToolBoxCfg.oseasypath}ScreenRender_Y.exe"
+    check_path = f"{toolbox_cfg.oseasy_path}ScreenRender_Y.exe"
     # try:
     #     fm = open(check_path,'r')
     #     fm.close()
@@ -752,10 +752,10 @@ def check_tihuan_SCRY_status() -> bool:
     # except FileNotFoundError:
     #     return False
 
-    return checkPointFileIsExcs(check_path)
+    return check_give_file_path_is_excs(check_path)
 
 
-def get_pid(name) -> int | None:
+def get_proc_pid(name) -> int | None:
     """
     根据进程名获取进程pid\n
     未寻找到返回None
@@ -792,7 +792,7 @@ def get_scshot() -> None:
     print("DEBUG SavePath > ", mix_name)
 
 
-def check_MMPC_status() -> bool:
+def check_mmpc_status() -> bool:
     """检查MMPC根服务状态\n
     返回True/False"""
     name = "MMPC"
@@ -824,7 +824,7 @@ def del_historyrem(*e) -> None:
     neddel = ["fontPath", "bgPath", "yiyanPath"]
 
     for i in neddel:
-        ToolBoxCfg.set_config_key_data(i, None)
+        toolbox_cfg.set_config_key_data(i, None)
 
 
 
@@ -833,27 +833,27 @@ def del_historyrem(*e) -> None:
 
 
 
-def onetime_protectcheck() -> None:
+def check_killer_script_is_alreay_start() -> None:
     """检测是否开启了击杀脚本\n
     若未开启则帮助启动一次\n
     已经开启则忽略"""
     try:
         window = gw.getWindowsWithTitle("OsEasyToolBoxKiller")[0]
     except:
-        ScriptGen.summon_killer()
+        script_gen.summon_killer()
         runbat("k.bat")
 
 
-def opengithubres(*e) -> None:
+def open_github_page(*e) -> None:
     """在浏览器打开github仓库页面"""
     webbrowser.open("https://github.com/ZiHaoSaMa66/OsEasy-ToolBox")
 
 
-def startprotect() -> None:
-    global RunProtectCMD
+def start_killer_protect() -> None:
+    global is_protect_killer_script_running
     """启动守护进程"""
     ptct = 0
-    while RunProtectCMD == True:
+    while is_protect_killer_script_running == True:
         try:
             window = gw.getWindowsWithTitle("OsEasyToolBoxKiller")[0]
             time.sleep(0.5)
@@ -863,19 +863,19 @@ def startprotect() -> None:
             time.sleep(1)
 
 
-def delcmdfiles() -> None:
+def del_self_cmd_files() -> None:
     """删除生成的脚本文件"""
-    global cmdpath
+    global cmd_file_path
     for filename in ["k.bat", "d.bat", "temp.bat", "kv2.bat", "net.bat", "usb.bat"]:
         try:
-            os.remove(os.path.join(cmdpath, filename))
+            os.remove(os.path.join(cmd_file_path, filename))
         except FileNotFoundError:
             continue
 
 
 def backup_oe_files() -> None:
     """备份OE的关键文件"""
-    global bkppath
+    global backup_file_path
     print("[INFO] 尝试备份关键文件")
     namelist = [
         "MultiClient.exe",
@@ -886,22 +886,22 @@ def backup_oe_files() -> None:
     ]
     for filename in namelist:
 
-        oepath = ToolBoxCfg.oseasypath + filename
+        oepath = toolbox_cfg.oseasy_path + filename
 
-        needbkpath = bkppath + "\\" + filename
+        needbkpath = backup_file_path + "\\" + filename
 
-        runcmd(f'copy "{oepath}" "{needbkpath}"')
+        run_sigle_cmd(f'copy "{oepath}" "{needbkpath}"')
 
 
-def restoneFile(filename: str) -> None:
-    global bkppath
-    oepath = ToolBoxCfg.oseasypath + filename
-    needbkpath = bkppath + "\\" + filename
-    runcmd(f'copy "{needbkpath}" "{oepath}"')
+def restone_sigle_oe_backup_file(filename: str) -> None:
+    global backup_file_path
+    oepath = toolbox_cfg.oseasy_path + filename
+    needbkpath = backup_file_path + "\\" + filename
+    run_sigle_cmd(f'copy "{needbkpath}" "{oepath}"')
 
-def restoneKeyDll() -> None:
+def restone_oe_backup_key_dll() -> None:
     """恢复OE关键文件"""
-    global bkppath
+    global backup_file_path
     print("尝试还原关键文件")
     namelist = [
         "oenetlimitx64.cat",
@@ -917,18 +917,18 @@ def restoneKeyDll() -> None:
     faild_file_name = []
     
     for filename in namelist:
-        oepath = ToolBoxCfg.oseasypath + filename
-        needbkpath = bkppath + "\\" + filename
+        oepath = toolbox_cfg.oseasy_path + filename
+        needbkpath = backup_file_path + "\\" + filename
 
-        runcmd(f'copy "{needbkpath}" "{oepath}"')
+        run_sigle_cmd(f'copy "{needbkpath}" "{oepath}"')
     
     time.sleep(3)
     
     for filename in namelist:
         
-        oepath = ToolBoxCfg.oseasypath + filename
+        oepath = toolbox_cfg.oseasy_path + filename
         
-        cSta = checkPointFileIsExcs(oepath)
+        cSta = check_give_file_path_is_excs(oepath)
         
         print(f"filename {filename} 复制检测状态 > {cSta}")
         
@@ -937,61 +937,55 @@ def restoneKeyDll() -> None:
     
     if len(faild_file_name) > 0:
         msg_mix = " , ".join(faild_file_name)
-        Ui_CallShowSnakeMessage(f"在恢复文件时检测到可能复制失败的文件有: \n{msg_mix}")
+        Ui_call_show_snake_message(f"在恢复文件时检测到可能复制失败的文件有: \n{msg_mix}")
         return
     
-    Ui_CallShowSnakeMessage("恢复文件完成")
+    Ui_call_show_snake_message("恢复文件完成")
         
 
 
 def runbat(batname: str) -> None:
     """运行指定名称的bat脚本"""
-    global cmdpath
-    batp = os.path.join(cmdpath, batname)
+    global cmd_file_path
+    batp = os.path.join(cmd_file_path, batname)
     os.startfile(batp)
 
 
 
 
 
-def regkillercmd() -> None:
+def register_killer_script() -> None:
     """生成击杀脚本并绑定粘滞键"""
-    ScriptGen.summon_killer()
-    # mp = cmdpath + "\\r.bat"
-    # fm = open(mp,"w")
-    # cmdtext = 'REG ADD "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\sethc.exe" /v Debugger /t REG_SZ /d "C:\\Program Files\\dotnet\\k.bat"'
-    # fm.write(cmdtext)
-    # fm.close()
-    # os.system("start C:\\Program Files\\dotnet\\r.bat")
-    runcmd(
-        f'REG ADD "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\sethc.exe" /v Debugger /t REG_SZ /d "{cmdpath}\\k.bat"'
+    script_gen.summon_killer()
+    run_sigle_cmd(
+        f'REG ADD "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\sethc.exe" /v Debugger /t REG_SZ /d "{cmd_file_path}\\k.bat"'
     )
 
-def del_reg_killer() -> None:
+def del_register_killer() -> None:
     """清理绑定的粘滞键重定向"""
-    runcmd(
+    run_sigle_cmd(
         'REG DELETE "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\sethc.exe" /v Debugger /f'
     )
 
-def regkillerV2cmd() -> None:
+def register_killer_v2_cmd() -> None:
     """生成击杀脚本V2并绑定粘滞键"""
-    ScriptGen.summon_killerV2()
-    runcmd(
-        f'REG ADD "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\sethc.exe" /v Debugger /t REG_SZ /d "{cmdpath}\\kv2.bat"'
+    script_gen.summon_killer_v2()
+    run_sigle_cmd(
+        f'REG ADD "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\sethc.exe" /v Debugger /t REG_SZ /d "{cmd_file_path}\\kv2.bat"'
     )
 
 
-def boxkiller() -> None:
-    global RunBoxKiller
-    while RunBoxKiller == True:
+def run_inner_toolbox_killer_loop() -> None:
+    global is_box_killer_running
+    while is_box_killer_running == True:
         # os.system(command="taskkill /f /t /im Student.exe")
-        opt = os.system(f"taskkill /f /t /im {ToolBoxCfg.studentExeName}")
+        opt = os.system(f"taskkill /f /t /im {toolbox_cfg.student_exe_name}")
         # print("test run")
         time.sleep(0.2)
     # print(f"[DEBUG] Killer Runned {opt}")
 
 
-def runcmd(givecmd: str, *quiterun: bool) -> None:
+def run_sigle_cmd(givecmd: str, *quiterun: bool) -> None:
     """运行指定的命令"""
     if not quiterun:
         os.popen(cmd=givecmd)
@@ -1003,70 +997,70 @@ def runcmd(givecmd: str, *quiterun: bool) -> None:
         os.system(command=givecmd)
 
 
-def usecmd_runcmd(cmd: str) -> None:
+def use_bat_file_to_run_cmd(cmd: str) -> None:
     """生成一个临时cmd文件运行指定命令"""
-    global cmdpath
-    mp = cmdpath + "\\temp.bat"
+    global cmd_file_path
+    mp = cmd_file_path + "\\temp.bat"
     fm = open(mp, "w")
     cmdtext = "@ECHO OFF\n"
     cmdtext += cmd
     cmdtext += "\nexit"
     fm.write(cmdtext)
     fm.close()
-    runcmd(f"start {mp}")
+    run_sigle_cmd(f"start {mp}")
 
 
 
 
 def selfunc_g1plus(*e) -> None:
     # 注册V2版本的替换击杀脚本
-    regkillerV2cmd()
+    register_killer_v2_cmd()
 
 
-def delLockExeAndLogout(need_shutdown: bool) -> None:
-    ScriptGen.summon_killer()
-    onetime_protectcheck()
-    ScriptGen.summon_deldll(delMtc=True, shutdown=need_shutdown)
+def del_locked_exe_then_logout(need_shutdown: bool) -> None:
+    script_gen.summon_killer()
+    check_killer_script_is_alreay_start()
+    script_gen.summon_del_dll(delMtc=True, shutdown=need_shutdown)
     time.sleep(2)
     runbat("d.bat")
 
 
-def handToStartStudent(*e) -> None:
-    os.startfile(f"{ToolBoxCfg.oseasypath}{ToolBoxCfg.studentExeName}")
+def handle_start_student_client(*e) -> None:
+    os.startfile(f"{toolbox_cfg.oseasy_path}{toolbox_cfg.student_exe_name}")
 
 
 
-def killerCmdProtect() -> None:
-    global RunProtectCMD
-    if RunProtectCMD == False:
-        RunProtectCMD = True
-        ScriptGen.summon_killer()
-        startprotect()
-    elif RunProtectCMD == True:
-        RunProtectCMD = False
-        usecmd_runcmd(
+def killer_script_protect() -> None:
+    global is_protect_killer_script_running
+    if is_protect_killer_script_running == False:
+        is_protect_killer_script_running = True
+        script_gen.summon_killer()
+        start_killer_protect()
+    elif is_protect_killer_script_running == True:
+        is_protect_killer_script_running = False
+        use_bat_file_to_run_cmd(
             'taskkill /f /t /fi "imagename eq cmd.exe" /fi "windowtitle eq 管理员:  OsEasyToolBoxKiller"'
         )
 
 
-def unlockedNet() -> None:
-    ScriptGen.summon_unlocknet()
+def handle_run_old_unlock_net() -> None:
+    script_gen.summon_unlocknet()
     runbat("net.bat")
-    Ui_CallShowSnakeMessage("解锁网络锁定中 请稍等")
+    Ui_call_show_snake_message("解锁网络锁定中 请稍等")
     time.sleep(2)
-    runcmd("sc stop OeNetlimit")
+    run_sigle_cmd("sc stop OeNetlimit")
     time.sleep(1)
-    usecmd_runcmd(
+    use_bat_file_to_run_cmd(
         'taskkill /f /t /fi "imagename eq cmd.exe" /fi "windowtitle eq 管理员:  OsEasyToolBoxUnlockNetHeler"'
     )
     time.sleep(1)
-    Ui_CallShowSnakeMessage("执行完成 理论上网络已解锁")
+    Ui_call_show_snake_message("执行完成 理论上网络已解锁")
 
 
-def startOsEasySelfToolBox(*e) -> None:
+def start_oseasy_self_toolbox(*e) -> None:
     # print("执行功能8 请稍等...")
-    regkillercmd()
-    onetime_protectcheck()
+    register_killer_script()
+    check_killer_script_is_alreay_start()
     time.sleep(2)
     # runcmd(f'"')
-    os.startfile(f"{ToolBoxCfg.oseasypath}AssistHelper.exe")
+    os.startfile(f"{toolbox_cfg.oseasy_path}AssistHelper.exe")

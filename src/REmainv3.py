@@ -1,8 +1,8 @@
 from remain import *
 
-fstst = ToolBoxCfg.first_launch_check()
+fstst = toolbox_cfg.first_launch_check()
 if fstst == True:
-    usecmd_runcmd(
+    use_bat_file_to_run_cmd(
         'rename "C:\\Program Files\\Autodesk\\Autodesk Sync\\AdSyncNamespace.dll" "AdSyncNamespace.dll.bak"'
     )
 # fixed pyqt bind to autodesk360 dll
@@ -23,7 +23,7 @@ fontpath = "C:\\Windows\\Fonts\\Deng.ttf"
 
 
 
-class HotkeyManager:
+class hotkey_manager:
     """快捷键管理中心"""
     def __init__(self):
         self.hotkeys = defaultdict(list)  
@@ -125,7 +125,7 @@ class Ui:
 
         self.ver = "OsEasy-ToolBox v1.8 Beta2"
 
-        self.hotkeyManager = HotkeyManager()
+        self.hotkeyManager = hotkey_manager()
 
         self.guaqi_runstatus = False  # 挂起进程状态
         self.bgtmd = 0.6  # 初始化 背景图片透明度值
@@ -140,9 +140,9 @@ class Ui:
 
 
 
-    def dic_RunFullSC(self):
+    def direct_run_fullscreen_boradcast_cmd(self):
         """按钮点击直接运行全屏广播指令"""
-        status = get_yuancheng_cmd()
+        status = from_log_file_get_remote_cmd()
 
         if self.KillSCR_swc.value == True:
 
@@ -150,9 +150,9 @@ class Ui:
                 self.show_snakemessage("未拦截到控制命令参数")
             else:
                 cmd = status.replace("#fullscreen#:0", "#fullscreen#:1")
-                builded = build_run_srcmd(cmd)
+                builded = build_run_broadcast_cmd(cmd)
                 print("DEBUG with build cmd", builded)
-                runcmd(builded)
+                run_sigle_cmd(builded)
 
         else:
             self.show_snakemessage(
@@ -160,10 +160,10 @@ class Ui:
             )
 
 
-    def dic_KillSCR(self, *e):
+    def direct_kill_screen_render(self, *e):
         """点击按钮直接杀屏幕广播进程"""
-        runcmd("taskkill /f /t /im ScreenRender_Y.exe")
-        runcmd("taskkill /f /t /im ScreenRender.exe")
+        run_sigle_cmd("taskkill /f /t /im ScreenRender_Y.exe")
+        run_sigle_cmd("taskkill /f /t /im ScreenRender.exe")
 
 
     def theme_changed(self, *e):
@@ -181,19 +181,19 @@ class Ui:
     def try_get_history_path(self):
         """尝试获取历史路径"""
         if fstst != True:
-            bgPath = ToolBoxCfg.get_style_path("bgPath")
+            bgPath = toolbox_cfg.get_style_path("bgPath")
             if bgPath:
                 self.bgpath = bgPath
                 self.bgtmdb.disabled = False
                 self.loaded_bg = True
-                self.reflashbg()
+                self.reflash_ui_bg()
 
-            yiyanPath = ToolBoxCfg.get_style_path("yiyanPath")
+            yiyanPath = toolbox_cfg.get_style_path("yiyanPath")
             if yiyanPath:
                 self.yiyanfpath = yiyanPath
-                self.loadyiyan()
+                self.from_file_load_yiyan()
 
-            fontPath = ToolBoxCfg.get_style_path("fontPath")
+            fontPath = toolbox_cfg.get_style_path("fontPath")
             if fontPath:
                 self.zdy_fontpath = fontPath
                 self.setup_zidingyi_font()
@@ -207,7 +207,7 @@ class Ui:
         if xueze == None:
             self.show_snakemessage("取消解锁了")
         else:
-            delLockExeAndLogout(xueze)
+            del_locked_exe_then_logout(xueze)
 
     def open_askdel_dlg(self, *e):
         self.page.dialog = self.unlock_func_askdlg
@@ -352,7 +352,7 @@ class Ui:
             icon=ft.icons.BACK_HAND_OUTLINED,
             # on_long_press=self.MMPC_shutdown_start_chufa,
             on_long_press= lambda _:
-                runcmd("sc stop MMPC") if check_MMPC_status() else runcmd("sc start MMPC"),
+                run_sigle_cmd("sc stop MMPC") if check_mmpc_status() else run_sigle_cmd("sc start MMPC"),
             on_hover=self.only_update_MMPC_status,
         )
         self.mmpc_Stext = ft.TextField(
@@ -384,7 +384,7 @@ class Ui:
                 ft.FilledTonalButton(
                     text="长按重启学生端",
                     icon=ft.icons.RESTORE,
-                    on_long_press=handToStartStudent,
+                    on_long_press=handle_start_student_client,
                 ),
                 ft.FilledTonalButton(
                     text="重新获取学生端路径",
@@ -394,23 +394,23 @@ class Ui:
                 ft.FilledTonalButton(
                     text="注册粘滞键替换",
                     icon=ft.icons.FILE_COPY_ROUNDED,
-                    on_click=lambda _:regkillercmd(),
+                    on_click=lambda _:register_killer_script(),
                 ),
                 ft.FilledTonalButton(
                     text="还原粘滞键",
                     icon=ft.icons.FILE_COPY_ROUNDED,
-                    on_click=lambda _: del_reg_killer(),
+                    on_click=lambda _: del_register_killer(),
                 ),
                 ft.Switch(
                     label="外部cmd守护进程",
                     active_color="green",
-                    on_change=lambda _:killerCmdProtect(),
+                    on_change=lambda _:killer_script_protect(),
                 ),
                 self.guaqi_sw,
                 ft.FilledTonalButton(
                     text="打开噢易自带工具",
                     icon=ft.icons.OPEN_IN_NEW,
-                    on_click=startOsEasySelfToolBox,
+                    on_click=start_oseasy_self_toolbox,
                 ),
             ]
         )
@@ -422,7 +422,7 @@ class Ui:
                 ft.FilledTonalButton(
                     text="长按以删除脚本文件",
                     icon=ft.icons.CLEANING_SERVICES_OUTLINED,
-                    on_long_press=lambda _:delcmdfiles(),
+                    on_long_press=lambda _:del_self_cmd_files(),
                 ),
                 ft.FilledTonalButton(
                     text="删除键盘锁驱动&控屏锁定程序",
@@ -432,22 +432,22 @@ class Ui:
                 ft.FilledTonalButton(
                     text="长按恢复所有备份文件",
                     icon=ft.icons.RESTORE,
-                    on_long_press=lambda _: restoneKeyDll(),
+                    on_long_press=lambda _: restone_oe_backup_key_dll(),
                 ),
                 ft.FilledTonalButton(
                     text="长按以恢复黑屏安静程序",
                     icon=ft.icons.ACCOUNT_BOX,
-                    on_long_press=lambda _: restoneFile("BlackSlient.exe"),
+                    on_long_press=lambda _: restone_sigle_oe_backup_file("BlackSlient.exe"),
                 ),
                 ft.FilledTonalButton(
                     text="长按以仅恢复控屏锁定程序",
                     icon=ft.icons.SCREEN_SHARE_SHARP,
-                    on_long_press=lambda _: restoneFile("MultiClient.exe"),
+                    on_long_press=lambda _: restone_sigle_oe_backup_file("MultiClient.exe"),
                 ),
                 ft.FilledTonalButton(
                     text="停止网络管控服务(不可逆)",
                     icon=ft.icons.WIFI_PASSWORD_SHARP,
-                    on_click=lambda _: unlockedNet(),
+                    on_click=lambda _: handle_run_old_unlock_net(),
                 ),
                 ft.FilledTonalButton(
                     text="[无法正常工作] 关闭USB管控服务",
@@ -463,7 +463,7 @@ class Ui:
         self.auto_gennerate_cmd = ft.FilledTonalButton(
             text="由教师机IP生成远程命令",
             icon=ft.icons.DRAW,
-            on_click=lambda _: generate_yc_cmd_and_save(self.teachIp_input.value),
+            on_click=lambda _: generate_remote_cmd_and_save(self.teachIp_input.value),
         )
 
         self.conl_save_ycCmd_input = ft.TextField(label="键入完整的远程广播命令")
@@ -501,7 +501,7 @@ class Ui:
 
         self.RunFullSC_btn = ft.FilledTonalButton(
             "长按运行全屏广播命令",
-            on_long_press=lambda _:self.dic_RunFullSC(),
+            on_long_press=lambda _:self.direct_run_fullscreen_boradcast_cmd(),
             icon=ft.icons.FULLSCREEN,
         )
 
@@ -524,7 +524,7 @@ class Ui:
                 # [keyboard.Key.ctrl_l, keyboard.Key.alt_l,'f'],
                 # ["<70>"],
                 # {keyboard.Key.ctrl_l, keyboard.Key.alt_l, keyboard.KeyCode(vk=70)},
-                ToolBox.dic_RunFullSC
+                ToolBox.direct_run_fullscreen_boradcast_cmd
             ),
             active_color="pink",
         )
@@ -532,7 +532,7 @@ class Ui:
         self.KillSCR_btn = ft.FilledTonalButton(
             "手动杀屏幕广播进程",
             icon=ft.icons.BACK_HAND_OUTLINED,
-            on_click=self.dic_KillSCR,
+            on_click=self.direct_kill_screen_render,
         )
 
         self.KillSCR_swc = ft.Switch(
@@ -541,7 +541,7 @@ class Ui:
             on_change=lambda _: self.hotkeyManager.switch_reg_helper(
                 self.KillSCR_swc.value,
                 [keyboard.Key.alt_l,'k'],
-                ToolBox.dic_KillSCR
+                ToolBox.direct_kill_screen_render
                 ),
             active_color="pink",
         )
@@ -637,9 +637,9 @@ class Ui:
         # on_change=lambda e: print("Selected destination:", e.control.selected_index)
 
         # self.base_mix = ft.Row(self.Rail , ft.VerticalDivider(width=1))
-        self.pickrandomyiyan()
+        self.pick_a_random_yiyan()
 
-        self.SWC_MainPages_0()
+        self.switch_main_page_0()
 
         self.added_pickdialog()
 
@@ -662,14 +662,14 @@ class Ui:
         只能用个写在UI类里多余的函数来做"""
 
         # status, studentName = TryGetStudentPath()
-        _ = tryGuessStudentClientVer()
+        _ = try_guess_student_client_version()
         # 没啥用只是顺带需要更新一下学生端版本
 
-        if ToolBoxCfg.oseasypath_have_been_modified != False:
+        if toolbox_cfg.oseasypath_have_been_modified != False:
             guess_msg = f"猜测的学生端版本 v{_ / 10}" if _ !=0 else '检测学生端版本特征失败'
             
             self.show_snakemessage(
-                f"更新学生端路径成功\n{ToolBoxCfg.oseasypath}\n学生端进程名:{ToolBoxCfg.studentExeName}\n{guess_msg}"
+                f"更新学生端路径成功\n{toolbox_cfg.oseasy_path}\n学生端进程名:{toolbox_cfg.student_exe_name}\n{guess_msg}"
             )
         else:
             self.show_snakemessage(f"更新路径失败\n也许是学生端未运行??")
@@ -692,9 +692,9 @@ class Ui:
     def selPages_Helper(self, index):
         """帮助切换页面选择器"""
         self.NowSelIndex = str(index)
-        self.pickrandomyiyan()
+        self.pick_a_random_yiyan()
 
-        exc = "ToolBox.SWC_MainPages_" + str(index) + "()"
+        exc = "ToolBox.switch_main_page_" + str(index) + "()"
         eval(exc)
 
     def apply_bg_to_ui(self, needLoad_Stuff_list: list):
@@ -721,14 +721,14 @@ class Ui:
             self.page.add(nedadd)
             self.page.update()
 
-    def SWC_MainPages_0(self):
+    def switch_main_page_0(self):
         """切换至页面0_进程管理页面"""
 
         self.mmpc_Stext.value = "未知 (随时都可以点我更新状态)"
 
         self.apply_bg_to_ui(needLoad_Stuff_list=self.funcTab_Stuff)
 
-    def SWC_MainPages_1(self):
+    def switch_main_page_1(self):
         """切换至页面1_其他管理页面"""
         # print("Func Run SWC 1")
 
@@ -736,23 +736,23 @@ class Ui:
 
     def run_win_gbcmd_loj(self, *e):
         """运行屏幕广播命令的逻辑触发函数"""
-        get = get_yuancheng_cmd()
+        get = from_log_file_get_remote_cmd()
         if get == None:
             self.show_snakemessage("未拦截到控制命令参数")
         else:
-            bcmd = build_run_srcmd(YC_command=get)
+            bcmd = build_run_broadcast_cmd(YC_command=get)
             bcmd = bcmd.replace("#fullscreen#:1","#fullscreen#:0")
-            runcmd(bcmd)
+            run_sigle_cmd(bcmd)
             # fix 黑框
         pass
 
     def replace_SCR_loj(self, *e):
         """替换SCR程序为拦截程序的逻辑触发函数"""
 
-        HighVer_CloseMMPCProtect_Helper()
+        if_is_high_ver_client_auto_close_mmpc_helper()
         time.sleep(1)
         self.show_snakemessage("开始替换程序 请稍等...\n这大约需要6秒左右")
-        status = replace_ScreenRender()
+        status = replace_screen_render()
         if status == False:
             self.show_snakemessage(
                 "替换拦截程序失败 未检测到可替换程序\n请确保ScreenRender_Helper.exe\n与工具箱处在同一目录"
@@ -762,10 +762,10 @@ class Ui:
 
     def restone_SCR_loj(self, *e):
         """恢复SCR程序的逻辑触发函数"""
-        HighVer_CloseMMPCProtect_Helper()
+        if_is_high_ver_client_auto_close_mmpc_helper()
         time.sleep(1)
         self.show_snakemessage("开始还原替换程序 请稍等...")
-        status = restone_ScreenRender()
+        status = restone_screen_render()
         if status == False:
             self.show_snakemessage(
                 "尝试恢复拦截程序时失败\n未检测到被重命名的ScreenRender.exe"
@@ -777,7 +777,7 @@ class Ui:
 
     def dev_read_lj_cmd_loj(self, *e):
         """读取已拦截的命令逻辑触发函数"""
-        status = save_now_yccmd()
+        status = save_now_broadcast_cmd()
         if status == None:
             self.show_snakemessage("未拦截到控制命令参数")
         else:
@@ -786,7 +786,7 @@ class Ui:
     def update_replace_status(self, *e):
         """更新替换程序状态检查"""
 
-        if check_tihuan_SCRY_status():
+        if check_replace_screen_render_status():
             self.show_snakemessage("检测到目录下已有ScreenRender_Y.exe")
             self.replace_status.value = "已替换"
         else:
@@ -797,7 +797,7 @@ class Ui:
 
         self.page.update()
 
-    def SWC_MainPages_2(self):
+    def switch_main_page_2(self):
         """切换至页面2_控屏管理界面"""
 
         self.replace_status = ft.TextField(
@@ -827,7 +827,7 @@ class Ui:
 
         self.apply_bg_to_ui(needLoad_Stuff_list=self.ConlTab_Stuff)
 
-    def SWC_MainPages_3(self):
+    def switch_main_page_3(self):
         """切换至页面3_广播命令"""
 
         self.gbCommandStuff = ft.Column(
@@ -848,7 +848,7 @@ class Ui:
 
         pass
 
-    def SWC_MainPages_5(self):
+    def switch_main_page_5(self):
         """切换至页面5_外观调整界面"""
 
         self.apply_bg_to_ui(needLoad_Stuff_list=self.waiguanTab_Stuff)
@@ -857,7 +857,7 @@ class Ui:
 
         pass
 
-    def SWC_MainPages_6(self):
+    def switch_main_page_6(self):
         """切换至页面6_关于界面"""
 
 
@@ -866,14 +866,14 @@ class Ui:
             controls=[
                 ft.Text("此工具箱在Github上发布", size=22),
                 ft.Text("愿我们的电脑课都不再无聊~🥳", size=22),
-                ft.ElevatedButton("点我打开工具箱Github页", on_click=opengithubres),
+                ft.ElevatedButton("点我打开工具箱Github页", on_click=open_github_page),
                 self.hide_tbox_swc,
             ]
         )
 
         self.apply_bg_to_ui(needLoad_Stuff_list=self.AboutTab_Stuff)
 
-    def SWC_MainPages_4(self):
+    def switch_main_page_4(self):
         """切换至页面4 dll 调试工具"""
 
         self.dll_usb_1 = ft.FilledTonalButton(
@@ -958,10 +958,10 @@ class Ui:
             self.page.add(idlg)
             self.page.update()
 
-    def reflashbg(self):
+    def reflash_ui_bg(self):
         """刷新背景"""
 
-        ToolBoxCfg.set_style_path("bgPath", self.bgpath)
+        toolbox_cfg.set_style_path("bgPath", self.bgpath)
 
         self.loaded_bg = True
         self.col_imgbg = ft.Image(
@@ -986,9 +986,9 @@ class Ui:
         if self.guaqi_runstatus == False:
             self.page.window_visible = False
             self.page.update()
-            status = Utils.guaqi_process(ToolBoxCfg.studentExeName)
+            status = utils.guaqi_process(toolbox_cfg.student_exe_name)
 
-            status_ = Utils.guaqi_process("MultiClient.exe")
+            status_ = utils.guaqi_process("MultiClient.exe")
 
             if status == True:
                 self.guaqi_runstatus = True
@@ -1001,8 +1001,8 @@ class Ui:
                 self.page.update()
                 self.show_snakemessage(status)
         else:
-            status = Utils.huifu_process(ToolBoxCfg.studentExeName)
-            status_ = Utils.huifu_process("MultiClient.exe")
+            status = utils.huifu_process(toolbox_cfg.student_exe_name)
+            status_ = utils.huifu_process("MultiClient.exe")
             if status == True:
                 self.guaqi_runstatus = False
             else:
@@ -1012,7 +1012,7 @@ class Ui:
 
 
 
-    def pickrandomyiyan(self, *e):
+    def pick_a_random_yiyan(self, *e):
         """挑选一个随机一言"""
 
         if self.defult_yy == False:
@@ -1048,9 +1048,9 @@ class Ui:
 
         self.page.update()
 
-    def loadyiyan(self):
+    def from_file_load_yiyan(self):
         """从外部加载一言库"""
-        ToolBoxCfg.set_style_path("yiyanPath", self.yiyanfpath)
+        toolbox_cfg.set_style_path("yiyanPath", self.yiyanfpath)
 
         try:
             fm = open(self.yiyanfpath, "r", encoding="utf-8")
@@ -1074,14 +1074,14 @@ class Ui:
     def change_bg_btmd(self, e):
         """改变背景图片不透明度的信号触发函数"""
         self.bgtmd = e.control.value
-        self.reflashbg()
+        self.reflash_ui_bg()
 
     def yiyan_pick_files_result(self, e: ft.FilePickerResultEvent):
 
         try:
             _yiyanfpath = e.files[0]
             self.yiyanfpath = os.path.join(_yiyanfpath.path)
-            self.loadyiyan()
+            self.from_file_load_yiyan()
 
         except TypeError:
             self.show_snakemessage("未选择一言文件")
@@ -1090,7 +1090,7 @@ class Ui:
     def setup_zidingyi_font(self):
         """设置自定义字体"""
 
-        ToolBoxCfg.set_style_path("fontPath", self.zdy_fontpath)
+        toolbox_cfg.set_style_path("fontPath", self.zdy_fontpath)
 
         self.font_loadtime += 1
         print("[DEBUG] font_loadtime var = ", self.font_loadtime)
@@ -1115,7 +1115,7 @@ class Ui:
         # sb了 不是普通括号
         if self.loaded_bg == True:  # 防止在新加载字体时把背景冲掉
 
-            self.reflashbg()
+            self.reflash_ui_bg()
 
     def font_pick_files_result(self, e: ft.FilePickerResultEvent):
         try:
@@ -1132,14 +1132,14 @@ class Ui:
             _bgpath = e.files[0]
             self.bgpath = os.path.join(_bgpath.path)
             self.bgtmdb.disabled = False
-            self.reflashbg()
+            self.reflash_ui_bg()
         except TypeError:
             self.show_snakemessage("未选择背景图片")
             pass
 
     def only_update_MMPC_status(self, *e):
         """仅更新MMPC根服务状态"""
-        st = check_MMPC_status()
+        st = check_mmpc_status()
         self.show_snakemessage(f"根服务状态: {st}")
         if st == True:
             self.mmpc_Stext.value = "正在运行"
