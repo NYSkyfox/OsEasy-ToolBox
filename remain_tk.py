@@ -549,7 +549,7 @@ def check_give_file_path_is_excs(filePath) -> bool:
 # ── Fake_SCR（假 ScreenRender）───────
 FAKE_SCR_FILE = os.path.join(cmd_file_path, "fake_scr.py")
 FAKE_SCR_CODE = r'''# -*- coding: utf-8 -*-
-# OsEasy-ToolBox Fake ScreenRender - 拦截广播命令并保存
+# OsEasy-ToolKit Fake ScreenRender - 拦截广播命令并保存
 import sys, os, json, re
 
 # 收集所有命令行参数（含广播命令）
@@ -935,7 +935,7 @@ def check_killer_script_is_alreay_start() -> None:
 
 def open_github_page(*e) -> None:
     """在浏览器打开github仓库页面"""
-    webbrowser.open("https://github.com/NYSkyfox/OsEasy-ToolBox")
+    webbrowser.open("https://github.com/NYSkyfox/OsEasy-ToolKit")
 
 
 def start_killer_protect() -> None:
@@ -1201,13 +1201,13 @@ IEOP_KEY = r"HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execut
 # ── 劫持 stub ──────────────────────────────────
 HIJACK_STUB_FILE = os.path.join(cmd_file_path, "hijack_stub.py")
 HIJACK_STUB_CODE = r'''# -*- coding: utf-8 -*-
-# OsEasy-ToolBox 广播拦截提示
+# OsEasy-ToolKit 广播拦截提示
 import tkinter as tk
 from tkinter import messagebox
 import sys
 
 root = tk.Tk()
-root.title("OsEasy-ToolBox 提示")
+root.title("OsEasy-ToolKit 提示")
 root.attributes("-topmost", True)
 # 窗口居中
 sw = root.winfo_screenwidth()
