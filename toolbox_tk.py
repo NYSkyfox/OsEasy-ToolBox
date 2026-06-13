@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# OsEasy-ToolBox tkinter 原生版（纯 Windows 默认样式 + 全功能确认弹窗）
+# OsEasy-ToolKit tkinter 原生版（纯 Windows 默认样式 + 全功能确认弹窗）
 import sys, os, threading
 sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
 
@@ -74,7 +74,7 @@ class ToolBoxTk:
 
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("OsEasy-ToolBox v2.0 tk")
+        self.root.title("OsEasy-ToolKit v1.0 tk")
         self.root.resizable(True, True)
 
         # ═══ DPI 缩放 ═══
@@ -140,7 +140,7 @@ class ToolBoxTk:
             self.tray_icon = pystray.Icon(
                 "OsEasyToolBox",
                 _create_tray_image(),
-                "OsEasy-ToolBox",
+                "OsEasy-ToolKit",
                 menu
             )
             self.tray_icon.run()
@@ -617,7 +617,7 @@ class ToolBoxTk:
         tab = self._frame(self.notebook)
         self.notebook.add(tab, text="关于")
 
-        self._lbl(tab, "OsEasy-ToolBox v2.0 tk", font_size=16, bold=True).pack(pady=10)
+        self._lbl(tab, "OsEasy-ToolKit v1.0 tk", font_size=16, bold=True).pack(pady=10)
         self._lbl(tab, "愿我们的电脑课都不再无聊~🥳", font_size=11).pack(pady=4)
         ttk.Button(tab, text="打开工具箱 Github 页",
                    command=open_github_page).pack(pady=10)
