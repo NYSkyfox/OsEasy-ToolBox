@@ -1,0 +1,7 @@
+pygetwindow
+pynput
+pyautogui
+psutil
+httpx
+pystray
+pillow
