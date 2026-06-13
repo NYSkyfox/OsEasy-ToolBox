@@ -1,4 +1,4 @@
-# OsEasy-ToolBox (噢易工具箱)
+# OsEasy-ToolKit (噢易工具箱)
 
 基于作者 [ZiHaoSaMa66](https://github.com/ZiHaoSaMa66/) [OsEasy-ToolBox](https://github.com/ZiHaoSaMa66/OsEasy-ToolBox) 进行二改。
 UI 框架由 [Flet](https://github.com/flet-dev/flet) 改为原生 **Python tkinter**，减小了工具箱的体积大小，同时增加了一些新功能
