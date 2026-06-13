@@ -1,5 +1,5 @@
 @ECHO OFF
-echo 正在安装 OsEasy-ToolBox 依赖...
+echo 正在安装 OsEasy-ToolKit 依赖...
 echo.
 echo 核心依赖：
 pip install -r requirements.txt
