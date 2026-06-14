@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os, time
 from datetime import datetime
 
@@ -450,7 +451,9 @@ def TryGetStudentPath() -> tuple[str, str] | tuple[bool, None]:
     else:
         exe_name = "Student.exe"
 
-    Spath = str(Spath).replace("/", "\\").removesuffix(exe_name)
+    Spath = str(Spath).replace("/", "\\")
+    if Spath.endswith(exe_name):
+        Spath = Spath[:-len(exe_name)]
     
     toolbox_cfg.oseasypath_have_been_modified = True
     toolbox_cfg.oseasy_path = Spath
