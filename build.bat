@@ -20,6 +20,7 @@ if %errorlevel% neq 0 (
 ECHO [1/3] 开始打包...
 pyinstaller --onefile --noconsole ^
     --add-data "remain_tk.py;." ^
+    --add-data "sv_ttk;sv_ttk" ^
     --hidden-import pygetwindow ^
     --hidden-import pynput ^
     --hidden-import pyautogui ^
