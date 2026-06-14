@@ -1,0 +1,77 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Python 3.8
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+
+      - name: 安装项目依赖
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: 下载 UPX（压缩 exe 体积）
+        run: |
+          curl -L -o upx.zip https://github.com/upx/upx/releases/download/v4.2.4/upx-4.2.4-win64.zip
+          tar -xf upx.zip
+          move upx-4.2.4-win64\upx.exe upx.exe
+          rmdir /s /q upx-4.2.4-win64 2>nul
+          del upx.zip 2>nul
+        shell: cmd
+
+      - name: 用 PyInstaller 打包
+        run: |
+          pyinstaller --onefile --noconsole ^
+            --add-data "remain_tk.py;." ^
+            --hidden-import pygetwindow ^
+            --hidden-import pynput ^
+            --hidden-import pyautogui ^
+            --hidden-import psutil ^
+            --hidden-import httpx ^
+            --upx-dir . ^
+            --exclude-module tkinter.test ^
+            --exclude-module unittest ^
+            --exclude-module test ^
+            --exclude-module idlelib ^
+            --exclude-module turtledemo ^
+            toolbox_tk.py
+        shell: cmd
+
+      - name: 计算 SHA256 并重命名 exe
+        run: |
+          certutil -hashfile dist\toolbox_tk.exe SHA256 | findstr /v "SHA256" | findstr /v "CertUtil" > hash.txt
+          set /p SHA=<hash.txt
+          set SHA256_FIRST8=%SHA:~0,8%
+          move /Y dist\toolbox_tk.exe "OsEasy-ToolKit_tkinker_%GITHUB_REF_NAME%_%SHA256_FIRST8%.exe"
+          echo SHA256=%SHA% >> %GITHUB_ENV%
+          echo EXE_NAME=OsEasy-ToolKit_tkinker_%GITHUB_REF_NAME%_%SHA256_FIRST8%.exe >> %GITHUB_ENV%
+        shell: cmd
+
+      - name: 上传到 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: OsEasy-ToolKit_tkinker_*.exe
+          name: ${{ github.ref_name }} - OsEasy-ToolKit
+          body: |
+            ## SHA256 校验
+            ```
+            ${{ env.SHA256 }}
+            ```
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') || contains(github.ref_name, 'alpha') }}
+          fail_on_unmatched_files: false
