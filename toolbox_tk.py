@@ -62,12 +62,8 @@ if fstst:
         'rename "C:\\Program Files\\Autodesk\\Autodesk Sync\\AdSyncNamespace.dll" "AdSyncNamespace.dll.bak"')
 
 # ═══════════════ 色板 ═══════════════
-COLORS = {
-    "root_bg": "#f0f0f0", "fg": "#000000",
-    "btn_bg": "#e8e8e8", "btn_fg": "#000000",
-    "status_bg": "#e0e0e0", "status_fg": "#000000",
-    "sep_bg": "#cccccc", "dlg_bg": "#f0f0f0",
-}
+# 随 sv-ttk 主题自动变化，在 _configure_ttk_style 中设置
+COLORS = {}
 
 
 class ToolBoxTk:
@@ -91,12 +87,29 @@ class ToolBoxTk:
         self.root.geometry(f"{win_w}x{win_h}")
         self.root.minsize(win_w, win_h)
 
-        # Windows 原生主题
+        # Sun-Valley 现代主题（Win11 风格）
+        self.root.tk.call("source", "sv_ttk/sv.tcl")
         self.style = ttk.Style()
-        self.style.theme_use("vista")
+        # 自动跟随系统主题
+        try:
+            import sys
+            if sys.platform == "win32":
+                import winreg
+                key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                    r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize")
+                is_light = winreg.QueryValueEx(key, "AppsUseLightTheme")[0] == 1
+                winreg.CloseKey(key)
+                theme = "sun-valley-light" if is_light else "sun-valley-dark"
+            else:
+                theme = "sun-valley-light"
+        except:
+            theme = "sun-valley-light"
+        self.style.theme_use(theme)
+        try:
+            self.root.tk.call("set_theme", theme.replace("sun-valley-", ""))
+        except:
+            pass
         self._configure_ttk_style()
-
-        self.root.configure(bg=COLORS["root_bg"])
 
         pass_ui_class(self)
 
@@ -184,12 +197,39 @@ class ToolBoxTk:
     # ═══════════════ ttk 样式配置 ═══════════════
     def _configure_ttk_style(self):
         s = self.style
+        theme = s.theme_use()
+        is_dark = "dark" in theme
+
+        # 动态设置色板
+        global COLORS
+        if is_dark:
+            COLORS.update({
+                "root_bg": "#1c1c1c", "fg": "#ffffff",
+                "btn_bg": "#2d2d2d", "btn_fg": "#ffffff",
+                "status_bg": "#252525", "status_fg": "#ffffff",
+                "sep_bg": "#3a3a3a", "dlg_bg": "#2d2d2d",
+                "entry_bg": "#1c1c1c", "select_bg": "#404040",
+            })
+        else:
+            COLORS.update({
+                "root_bg": "#f0f0f0", "fg": "#000000",
+                "btn_bg": "#e8e8e8", "btn_fg": "#000000",
+                "status_bg": "#e0e0e0", "status_fg": "#000000",
+                "sep_bg": "#cccccc", "dlg_bg": "#f0f0f0",
+                "entry_bg": "#ffffff", "select_bg": "#cce5ff",
+            })
+
+        # 应用背景色
+        self.root.configure(bg=COLORS["root_bg"])
+        self.status_bar.configure(bg=COLORS["status_bg"], fg=COLORS["status_fg"])
+
+        # sv-ttk 已接管全局样式，这里只需要微调
         s.configure("TNotebook", background=COLORS["root_bg"], borderwidth=0)
         s.configure("TNotebook.Tab",
-                    background=COLORS["btn_bg"], foreground=COLORS["fg"],
-                    borderwidth=0, padding=[22, 5], font=(self._font, 9))
+                     background=COLORS["btn_bg"], foreground=COLORS["fg"],
+                     borderwidth=0, padding=[22, 5], font=(self._font, 9))
         s.map("TNotebook.Tab",
-              background=[("selected", "#cce5ff")])
+              background=[("selected", COLORS["select_bg"])])
 
     # ═══════════════ 辅助方法 ═══════════════
     def _lbl(self, parent, text, font_size=9, bold=False):
@@ -224,13 +264,15 @@ class ToolBoxTk:
 
     def _entry(self, parent):
         return tk.Entry(parent, font=(self._font, 9),
-                        bg="#ffffff", fg=COLORS["fg"],
-                        insertbackground=COLORS["fg"])
+                        bg=COLORS["entry_bg"], fg=COLORS["fg"],
+                        insertbackground=COLORS["fg"],
+                        relief=tk.FLAT)
 
     def _text(self, parent, height=3):
         w = tk.Text(parent, height=height, font=("Consolas", 9),
-                    bg="#ffffff", fg=COLORS["fg"],
-                    insertbackground=COLORS["fg"])
+                    bg=COLORS["entry_bg"], fg=COLORS["fg"],
+                    insertbackground=COLORS["fg"],
+                    relief=tk.FLAT)
         return w
 
     # ═══════════════ 工具 ═══════════════
