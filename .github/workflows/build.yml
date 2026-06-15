@@ -1,19 +1,21 @@
 name: Build & Release
 
 on:
-  workflow_dispatch:          # 仅手动触发
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   build:
-    runs-on: windows-latest    # Windows 环境，原生支持 exe 打包
+    runs-on: windows-latest
     permissions:
-      contents: write          # 允许上� Release 贄产
+      contents: write
 
     steps:
-      - name: 检凸代码
+      - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 设罶 Python 3.8
+      - name: 设置 Python 3.8
         uses: actions/setup-python@v5
         with:
           python-version: '3.8'
@@ -29,7 +31,6 @@ jobs:
           curl -L -o upx.zip https://github.com/upx/upx/releases/download/v4.2.4/upx-4.2.4-win64.zip
           tar -xf upx.zip
           move upx-4.2.4-win64\upx.exe upx.exe
-          # 清理临时文件
           rmdir /s /q upx-4.2.4-win64 2>nul
           del upx.zip 2>nul
         shell: cmd
@@ -52,7 +53,7 @@ jobs:
             toolbox_tk.py
         shell: cmd
 
-      - name: 讪瞺 SHA256 并重命名 exe
+      - name: 计算 SHA256 并重命名 exe
         run: |
           certutil -hashfile dist\toolbox_tk.exe SHA256 | findstr /v "SHA256" | findstr /v "CertUtil" > hash.txt
           set /p SHA=<hash.txt
@@ -68,7 +69,7 @@ jobs:
           files: OsEasy-ToolKit_tkinker_*.exe
           name: ${{ github.ref_name }} - OsEasy-ToolKit
           body: |
-            ## SHA256 騦验
+            ## SHA256 校验
             ```
             ${{ env.SHA256 }}
             ```
