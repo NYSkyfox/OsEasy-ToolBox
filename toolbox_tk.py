@@ -122,6 +122,7 @@ class ToolBoxTk:
                                    bg=COLORS["status_bg"], fg=COLORS["status_fg"])
         self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
+        self._build_home_page()
         self._build_process_page()
         self._build_other_page()
         self._build_broadcast_page()
@@ -282,6 +283,201 @@ class ToolBoxTk:
 
     def _async(self, func):
         threading.Thread(target=func, daemon=True).start()
+
+    # ═══════════════ 首页（设备信息） ═══════════════
+    def _build_home_page(self):
+        tab = self._frame(self.notebook)
+        self.notebook.add(tab, text="首页")
+        self.notebook.select(tab)  # 默认选中首页
+
+        # ── 设备信息区域 ──
+        self._lbl(tab, "💻 设备信息", font_size=13, bold=True).pack(anchor=tk.W, pady=(10, 6))
+
+        def _info_row(parent, label, default="未知"):
+            """一行信息：标签 + 值"""
+            f = self._frame(parent)
+            f.pack(fill=tk.X, pady=1)
+            tk.Label(f, text=label, font=(self._font, 9),
+                     bg=COLORS["root_bg"], fg=COLORS["fg"],
+                     width=14, anchor=tk.W).pack(side=tk.LEFT)
+            val = tk.Label(f, text=default, font=(self._font, 9, "bold"),
+                           bg=COLORS["root_bg"], fg=COLORS["fg"],
+                           anchor=tk.W)
+            val.pack(side=tk.LEFT, fill=tk.X, expand=True)
+            return val
+
+        self._info_hw = {}
+        self._info_hw["device_name"] = _info_row(tab, "设备名称")
+        self._info_hw["os"] = _info_row(tab, "系统")
+        self._info_hw["username"] = _info_row(tab, "用户名")
+        self._info_hw["cpu"] = _info_row(tab, "CPU")
+        self._info_hw["gpu"] = _info_row(tab, "GPU")
+        self._info_hw["ram"] = _info_row(tab, "内存")
+        self._info_hw["disk"] = _info_row(tab, "硬盘")
+
+        # ── 学生端状态 ──
+        self._sep(tab)
+        self._lbl(tab, "🎯 学生端状态", font_size=13, bold=True).pack(anchor=tk.W, pady=(6, 4))
+
+        self.student_status_label = self._lbl(tab, "检测中...", font_size=11, bold=True)
+        self.student_status_label.pack(anchor=tk.W, pady=2)
+
+        ttk.Button(tab, text="📂 打开噢易安装文件夹", command=self._open_oe_folder).pack(anchor=tk.W, pady=4)
+
+        # ── 刷新按钮 ──
+        ttk.Button(tab, text="🔄 刷新", command=self._refresh_home).pack(anchor=tk.W, pady=8)
+
+        # 启动时自动刷新
+        self.root.after(200, self._refresh_home)
+
+    def _refresh_home(self):
+        """刷新首页信息"""
+        self._async(self._do_refresh_home)
+
+    def _do_refresh_home(self):
+        """后台线程：采集并更新信息"""
+        try:
+            import platform
+
+            # 设备名称
+            name = platform.node() or "未知"
+            self.root.after(0, lambda: self._info_hw["device_name"].configure(text=name))
+
+            # 系统
+            os_str = f"{platform.system()} {platform.release()} ({platform.version()})"
+            self.root.after(0, lambda: self._info_hw["os"].configure(text=os_str))
+
+            # 用户名
+            user = os.environ.get("USERNAME") or os.environ.get("USER") or "未知"
+            self.root.after(0, lambda: self._info_hw["username"].configure(text=user))
+
+            # CPU
+            cpu = platform.processor() or "未知"
+            cpu_mhz = ""
+            try:
+                import subprocess
+                r = subprocess.run(
+                    'wmic cpu get name,maxclockspeed',
+                    capture_output=True, text=True, shell=True, timeout=3
+                )
+                lines = [l.strip() for l in r.stdout.splitlines() if l.strip()]
+                if len(lines) >= 2:
+                    parts = lines[1].split(None, 1)
+                    if len(parts) >= 2:
+                        cpu = parts[0]
+                        try:
+                            mhz = int(parts[1])
+                            cpu_mhz = f" ({mhz/1000:.1f} GHz)"
+                        except:
+                            pass
+                    elif len(parts) == 1:
+                        try:
+                            # 如果只有maxclockspeed，说明wmic列顺序是反的
+                            mhz = int(parts[0])
+                            cpu_mhz = f" ({mhz/1000:.1f} GHz)"
+                            # 重新拿name
+                            r2 = subprocess.run(
+                                'wmic cpu get name',
+                                capture_output=True, text=True, shell=True, timeout=3
+                            )
+                            lines2 = [l.strip() for l in r2.stdout.splitlines() if l.strip() and "Name" not in l]
+                            if lines2:
+                                cpu = lines2[0]
+                        except:
+                            pass
+            except:
+                pass
+            self.root.after(0, lambda: self._info_hw["cpu"].configure(text=cpu + cpu_mhz))
+
+            # GPU
+            gpu = "未知"
+            try:
+                import subprocess
+                r = subprocess.run(
+                    'wmic path win32_videocontroller get name',
+                    capture_output=True, text=True, shell=True, timeout=3
+                )
+                lines = [l.strip() for l in r.stdout.splitlines() if l.strip() and "Name" not in l]
+                if lines:
+                    gpu = lines[0]
+            except:
+                pass
+            self.root.after(0, lambda: self._info_hw["gpu"].configure(text=gpu))
+
+            # 内存
+            ram_total = psutil.virtual_memory().total
+            ram_gb = ram_total / (1024**3)
+            ram_str = f"{ram_gb:.2f} GB"
+            self.root.after(0, lambda: self._info_hw["ram"].configure(text=ram_str))
+
+            # 硬盘（整块物理磁盘总容量 + 型号）
+            disk_str = "未知"
+            try:
+                import subprocess
+                r = subprocess.run(
+                    'wmic diskdrive get size,model',
+                    capture_output=True, text=True, shell=True, timeout=3
+                )
+                lines = r.stdout.splitlines()
+                # 解析表头找列索引
+                header = lines[0] if lines else ""
+                sizes = {}
+                models = {}
+                for line in lines[1:]:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    parts = line.split(None, 1)  # 第一块是size，剩下是model
+                    if len(parts) >= 2:
+                        try:
+                            sz = int(parts[0])
+                            md = parts[1].strip()
+                            sizes[md] = sz
+                        except:
+                            pass
+                if sizes:
+                    total_bytes = sum(sizes.values())
+                    total_gb = total_bytes / (1024**3)
+                    model_list = list(sizes.keys())
+                    model_str = " / ".join(model_list)
+                    disk_str = f"{total_gb:.1f} GB（{model_str}）"
+                else:
+                    disk_str = "获取失败"
+            except:
+                pass
+            self.root.after(0, lambda: self._info_hw["disk"].configure(text=disk_str))
+
+            # 学生端运行状态
+            self._update_student_status()
+
+        except Exception as e:
+            self.root.after(0, lambda: self.show_snakemessage(f"获取设备信息失败: {e}"))
+
+    def _open_oe_folder(self):
+        """打开噢易安装文件夹"""
+        path = toolbox_cfg.oseasy_path
+        if os.path.exists(path):
+            os.startfile(path)
+        else:
+            self.show_snakemessage("噢易安装路径不存在")
+
+    def _update_student_status(self):
+        """检查学生端是否在运行，并获取版本信息"""
+        try:
+            name = toolbox_cfg.student_exe_name
+            running = any(p.info["name"] == name for p in psutil.process_iter(["name"]))
+            if running:
+                # 获取版本号
+                v = try_guess_student_client_version()
+                ver_str = f"v{v/10}" if v else "版本未知"
+                self.root.after(0, lambda: self.student_status_label.configure(
+                    text=f"🟢 运行中（{ver_str}）", fg="#00cc66"))
+            else:
+                self.root.after(0, lambda: self.student_status_label.configure(
+                    text="🔴 未运行", fg="#ff4444"))
+        except:
+            self.root.after(0, lambda: self.student_status_label.configure(
+                text="⚪ 检测失败"))
 
     # ═══════════════ 进程管理页 ═══════════════
     def _build_process_page(self):

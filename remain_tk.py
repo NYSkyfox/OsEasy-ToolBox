@@ -92,9 +92,9 @@ def run_easy_dll(
     # dll_path = "" + dll_name
     dll_path = toolbox_cfg.oseasy_path + dll_name
 
-    easy_dll = easy_dll(dll_path)
+    dll_instance = easy_dll(dll_path)
 
-    runner = easy_dll.setup_function(func_name, restype=return_type, argtypes=argtypes)
+    runner = dll_instance.setup_function(func_name, restype=return_type, argtypes=argtypes)
 
     try:
         if out_buffer == None:
@@ -112,7 +112,7 @@ def run_easy_dll(
         ui_show_msg += f"\n输出参数: {out_buffer.value}"
 
     if result != 0:
-        error_msg = easy_dll.get_error_message(result)
+        error_msg = dll_instance.get_error_message(result)
         print("[DEBUG] Error message:", error_msg)
         ui_show_msg += f"\n错误信息: {error_msg}"
 
