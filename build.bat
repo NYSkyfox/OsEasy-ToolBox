@@ -4,7 +4,7 @@ TITLE OsEasy-ToolKit Builder
 cd /d "%~dp0"
 
 ECHO ========================================
-ECHO  Building OsEasy-ToolKit v1.0 tk
+ECHO  Building OsEasy-ToolKit v1.0.2 tk
 ECHO ========================================
 ECHO.
 
