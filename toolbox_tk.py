@@ -315,25 +315,25 @@ class ToolBoxTk:
         self._chk(tab, "外部cmd守护进程", on_cmd=self._start_daemon, off_cmd=self._stop_daemon)
         self.guaqi_var = tk.BooleanVar(value=False)
         def _do_guaqi():
-            if self.guaqi_var.get():
-                return  # 已经在挂起状态，忽略
+            if not self.guaqi_var.get():
+                return  # 还没勾选，忽略
             self.root.withdraw()  # 隐藏工具箱窗口
             self.root.update()
             status = utils.guaqi_process(toolbox_cfg.student_exe_name)
             status_ = utils.guaqi_process("MultiClient.exe")  # 同时挂起MultiClient
-            self.root.after(800, lambda: self.root.deiconify())  # 0.8秒后显示回来
             if status == True:
-                self.guaqi_var.set(True)
+                pass  # 挂起成功，窗口保持隐藏
             else:
                 self.guaqi_var.set(False)
+                self.root.deiconify()  # 挂起失败，恢复显示
                 self.show_snakemessage(str(status))
         def _do_huifu():
-            if not self.guaqi_var.get():
-                return  # 不在挂起状态，忽略
+            if self.guaqi_var.get():
+                return  # 还是勾选状态，忽略
             status = utils.huifu_process(toolbox_cfg.student_exe_name)
             status_ = utils.huifu_process("MultiClient.exe")
             if status == True:
-                self.guaqi_var.set(False)
+                self.root.deiconify()  # 恢复学生端后显示窗口
             else:
                 self.show_snakemessage(str(status))
         w = ttk.Checkbutton(tab, text="挂起学生端", variable=self.guaqi_var)
@@ -351,7 +351,9 @@ class ToolBoxTk:
 
     def _start_daemon(self):
         global is_protect_killer_script_running
-        is_protect_killer_script_running = True; start_killer_protect()
+        is_protect_killer_script_running = True
+        # 先启动循环击杀的 BAT 脚本（会弹出 cmd 窗口）
+        killer_script_protect()
 
     def _stop_daemon(self):
         global is_protect_killer_script_running

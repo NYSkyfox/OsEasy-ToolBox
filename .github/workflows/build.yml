@@ -1,25 +1,13 @@
 name: Build & Release
 
 on:
-  workflow_dispatch:          # 手动触发
-    inputs:
-      tag_name:
-        description: 'Release 标签（如 v1.0.1）'
-        required: true
-        default: 'v1.0.1'
-      prerelease:
-        description: '设为预发布版'
-        type: boolean
-        default: true
-  push:
-    tags:
-      - 'v*'                   # 推送 v1.0.0, v1.0.1 等 tag 时自动触发
+  workflow_dispatch:          # 仅手动触发
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-latest    # Windows 环境，原生支持 exe 打包
     permissions:
-      contents: write
+      contents: write          # 允许上传 Release 资产
 
     steps:
       - name: 检出代码
@@ -41,6 +29,7 @@ jobs:
           curl -L -o upx.zip https://github.com/upx/upx/releases/download/v4.2.4/upx-4.2.4-win64.zip
           tar -xf upx.zip
           move upx-4.2.4-win64\upx.exe upx.exe
+          # 清理临时文件
           rmdir /s /q upx-4.2.4-win64 2>nul
           del upx.zip 2>nul
         shell: cmd
@@ -49,7 +38,6 @@ jobs:
         run: |
           pyinstaller --onefile --noconsole ^
             --add-data "remain_tk.py;." ^
-            --add-data "sv_ttk;sv_ttk" ^
             --hidden-import pygetwindow ^
             --hidden-import pynput ^
             --hidden-import pyautogui ^
@@ -65,7 +53,6 @@ jobs:
         shell: cmd
 
       - name: 计算 SHA256 并重命名 exe
-        id: hash
         run: |
           certutil -hashfile dist\toolbox_tk.exe SHA256 | findstr /v "SHA256" | findstr /v "CertUtil" > hash.txt
           set /p SHA=<hash.txt
@@ -75,31 +62,15 @@ jobs:
           echo EXE_NAME=OsEasy-ToolKit_tkinker_%GITHUB_REF_NAME%_%SHA256_FIRST8%.exe >> %GITHUB_ENV%
         shell: cmd
 
-      - name: 判断是否为预发布版
-        id: check_prerelease
-        run: |
-          :: 手动触发时以输入为准，tag 推送时自动判断
-          if "${{ github.event_name }}" == "workflow_dispatch" (
-            echo prerelease=${{ github.event.inputs.prerelease }} >> %GITHUB_OUTPUT%
-          ) else (
-            if "${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') || contains(github.ref_name, 'alpha') }}" == "true" (
-              echo prerelease=true >> %GITHUB_OUTPUT%
-            ) else (
-              echo prerelease=false >> %GITHUB_OUTPUT%
-            )
-          )
-        shell: cmd
-
       - name: 上传到 Release
         uses: softprops/action-gh-release@v2
         with:
           files: OsEasy-ToolKit_tkinker_*.exe
-          tag_name: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag_name || github.ref_name }}
-          name: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag_name || github.ref_name }} - OsEasy-ToolKit
+          name: ${{ github.ref_name }} - OsEasy-ToolKit
           body: |
             ## SHA256 校验
             ```
             ${{ env.SHA256 }}
             ```
-          prerelease: ${{ steps.check_prerelease.outputs.prerelease }}
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') || contains(github.ref_name, 'alpha') }}
           fail_on_unmatched_files: false
