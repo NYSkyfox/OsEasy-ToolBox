@@ -214,7 +214,7 @@ class script_gen:
         """生成解锁网络锁定脚本"""
         global cmd_file_path
         mp = cmd_file_path + "\\net.bat"
-        fm = open(mp, "w")
+        fm = open(mp, "w", encoding="gbk")
         cmdtext = f"""@ECHO OFF\n
         title OsEasyToolBoxUnlockNetHeler\n
         {if_is_high_ver_client_then_return_stop_cmd_line(True)}
@@ -231,7 +231,7 @@ class script_gen:
         """生成解锁USB脚本"""
         global cmd_file_path
         mp = cmd_file_path + "\\usb.bat"
-        fm = open(mp, "w")
+        fm = open(mp, "w", encoding="gbk")
         cmdtext = """@ECHO OFF\n
         title OsEasyToolBoxUnlockUSBHeler\n
 
@@ -251,7 +251,7 @@ class script_gen:
         """生成V2击杀脚本"""
         global cmd_file_path
         mp = cmd_file_path + "\\kv2.bat"
-        fm = open(mp, "w")
+        fm = open(mp, "w", encoding="gbk")
         cmdtext = f"@ECHO OFF\ntitle OsEasyToolBoxKillerV2\n:awa\nfor %%p in (Ctsc_Multi.exe,DeviceControl_x64.exe,HRMon.exe,MultiClient.exe,OActiveII-Client.exe,OEClient.exe,OELogSystem.exe,OEUpdate.exe,OEProtect.exe,ProcessProtect.exe,RunClient.exe,RunClient.exe,ServerOSS.exe,{toolbox_cfg.student_exe_name},wfilesvr.exe,tvnserver.exe,updatefilesvr.exe,ScreenRender.exe) do taskkill /f /IM %%p\ngoto awa\n"
         fm.write(cmdtext)
         fm.close()
@@ -261,7 +261,7 @@ class script_gen:
         """生成击杀脚本"""
         global cmd_file_path
         mp = cmd_file_path + "\\k.bat"
-        fm = open(mp, "w")
+        fm = open(mp, "w", encoding="gbk")
         cmdtext = f"""@ECHO OFF\n
         title OsEasyToolBoxKiller\n
         
@@ -282,7 +282,7 @@ class script_gen:
         backup_oe_files()
 
         mp = cmd_file_path + "\\d.bat"
-        fm = open(mp, "w")
+        fm = open(mp, "w", encoding="gbk")
         cmdtext = f"@ECHO OFF\ntitle OsEasyToolBox-Helper\ncd /D {toolbox_cfg.oseasy_path}\ntimeout 1\ndel /F /S LockKeyboard.dll\ndel /F /S LoadDriver.exe\ndel /F /S LoadDriver.exe\ndel /F /S oenetlimitx64.cat\ndel /F /S BlackSlient.exe\ncd x86\ndel /F /S LISSNetInfoSniffer.exe\ncd .."
         if delMtc == True:
             cmdtext += "\ndel /F /S MultiClient.exe"
@@ -744,7 +744,7 @@ def save_scr_log_cmd_to_file(log_list=None) -> None:
         return save_scr_log_cmd_to_file(parse_screenrender_log())
 
     path = os.getcwd() + "\\" + "scr_log_cmd.txt"
-    with open(path, "w") as f:
+    with open(path, "w", encoding="gbk") as f:
         f.write("\n".join(log_list))
 
 
@@ -826,7 +826,7 @@ def save_now_broadcast_cmd() -> bool | None:
     if not cmd:
         return False
 
-    fm = open(savepath, "w")
+    fm = open(savepath, "w", encoding="gbk")
     fm.write(cmd)
     fm.close()
     return True
@@ -1093,7 +1093,7 @@ def use_bat_file_to_run_cmd(cmd: str) -> None:
     """生成一个临时cmd文件运行指定命令"""
     global cmd_file_path
     mp = cmd_file_path + "\\temp.bat"
-    fm = open(mp, "w")
+    fm = open(mp, "w", encoding="gbk")
     cmdtext = "@ECHO OFF\n"
     cmdtext += cmd
     cmdtext += "\nexit"
