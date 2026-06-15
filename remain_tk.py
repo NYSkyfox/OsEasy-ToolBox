@@ -272,6 +272,7 @@ class script_gen:
         taskkill /f /t /im BlackSlient.exe\n
         :a\n
         taskkill /f /t /im {toolbox_cfg.student_exe_name}\n
+        taskkill /f /t /im DeviceControl_x64.exe\n
         goto a"""
         fm.write(cmdtext)
         fm.close()

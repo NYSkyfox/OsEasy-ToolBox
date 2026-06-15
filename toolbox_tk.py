@@ -312,7 +312,7 @@ class ToolBoxTk:
                   "确定要注册粘滞键替换吗？\n（按5次Shift可触发击杀脚本）").pack(fill=tk.X, pady=2)
         self._btn(tab, "还原粘滞键", del_register_killer,
                   "确定要还原粘滞键吗？").pack(fill=tk.X, pady=2)
-        self._chk(tab, "外部cmd守护进程", on_cmd=self._start_daemon, off_cmd=self._stop_daemon)
+        self._chk(tab, "循环杀死学生端", on_cmd=self._start_daemon, off_cmd=self._stop_daemon)
         self.guaqi_var = tk.BooleanVar(value=False)
         def _do_guaqi():
             if not self.guaqi_var.get():
