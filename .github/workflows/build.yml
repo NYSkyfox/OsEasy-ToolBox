@@ -2,6 +2,11 @@ name: Build & Release
 
 on:
   workflow_dispatch:          # 手动触发
+    inputs:
+      tag_name:
+        description: 'Release 的 tag 名称（留空则自动创建）'
+        required: false
+        default: ''
   push:
     tags:
       - 'v*'                  # 推送 tag 时自动触发
@@ -59,20 +64,24 @@ jobs:
           certutil -hashfile dist\toolbox_tk.exe SHA256 | findstr /v "SHA256" | findstr /v "CertUtil" > hash.txt
           set /p SHA=<hash.txt
           set SHA256_FIRST8=%SHA:~0,8%
-          move /Y dist\toolbox_tk.exe "OsEasy-ToolKit_tkinker_%GITHUB_REF_NAME%_%SHA256_FIRST8%.exe"
+          if "%TAG_NAME%"=="" (set REF_NAME=%GITHUB_REF_NAME%) else (set REF_NAME=%TAG_NAME%)
+          move /Y dist\toolbox_tk.exe "OsEasy-ToolKit_tkinker_%REF_NAME%_%SHA256_FIRST8%.exe"
           echo SHA256=%SHA% >> %GITHUB_ENV%
-          echo EXE_NAME=OsEasy-ToolKit_tkinker_%GITHUB_REF_NAME%_%SHA256_FIRST8%.exe >> %GITHUB_ENV%
+          echo EXE_NAME=OsEasy-ToolKit_tkinker_%REF_NAME%_%SHA256_FIRST8%.exe >> %GITHUB_ENV%
         shell: cmd
+        env:
+          TAG_NAME: ${{ github.event.inputs.tag_name }}
 
       - name: 上传到 Release
         uses: softprops/action-gh-release@v2
         with:
           files: OsEasy-ToolKit_tkinker_*.exe
-          name: ${{ github.ref_name }} - OsEasy-ToolKit
+          name: ${{ github.event.inputs.tag_name || github.ref_name }} - OsEasy-ToolKit
+          tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
           body: |
             ## SHA256 校验
             ```
             ${{ env.SHA256 }}
             ```
-          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') || contains(github.ref_name, 'alpha') }}
+          prerelease: ${{ contains(github.event.inputs.tag_name || github.ref_name, 'beta') || contains(github.event.inputs.tag_name || github.ref_name, 'rc') || contains(github.event.inputs.tag_name || github.ref_name, 'alpha') }}
           fail_on_unmatched_files: false
