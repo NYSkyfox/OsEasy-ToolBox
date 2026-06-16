@@ -63,7 +63,13 @@ if fstst:
 
 # ═══════════════ 色板 ═══════════════
 # 随 sv-ttk 主题自动变化，在 _configure_ttk_style 中设置
-COLORS = {}
+COLORS = {
+    "root_bg": "#f0f0f0", "fg": "#000000",
+    "btn_bg": "#e8e8e8", "btn_fg": "#000000",
+    "status_bg": "#e0e0e0", "status_fg": "#000000",
+    "sep_bg": "#cccccc", "dlg_bg": "#f0f0f0",
+    "entry_bg": "#ffffff", "select_bg": "#cce5ff",
+}
 
 
 class ToolBoxTk:
