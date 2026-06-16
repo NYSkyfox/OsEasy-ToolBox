@@ -63,13 +63,7 @@ if fstst:
 
 # ═══════════════ 色板 ═══════════════
 # 随 sv-ttk 主题自动变化，在 _configure_ttk_style 中设置
-COLORS = {
-    "root_bg": "#f0f0f0", "fg": "#000000",
-    "btn_bg": "#e8e8e8", "btn_fg": "#000000",
-    "status_bg": "#e0e0e0", "status_fg": "#000000",
-    "sep_bg": "#cccccc", "dlg_bg": "#f0f0f0",
-    "entry_bg": "#ffffff", "select_bg": "#cce5ff",
-}
+COLORS = {}
 
 
 class ToolBoxTk:
@@ -115,18 +109,20 @@ class ToolBoxTk:
             self.root.tk.call("set_theme", theme.replace("sun-valley-", ""))
         except:
             pass
-        self._configure_ttk_style()
 
         pass_ui_class(self)
 
         self.notebook = ttk.Notebook(self.root)
         self.notebook.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
 
+        # ═══ 先创建 status_bar（必须在 _configure_ttk_style 之前） ═══
         self.status_var = tk.StringVar(value="就绪")
         self.status_bar = tk.Label(self.root, textvariable=self.status_var,
-                                   relief=tk.SUNKEN, anchor=tk.W,
-                                   bg=COLORS["status_bg"], fg=COLORS["status_fg"])
+                                   relief=tk.SUNKEN, anchor=tk.W)
         self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
+
+        # ═══ 然后配置样式（此时 status_bar 已存在） ═══
+        self._configure_ttk_style()
 
         self._build_home_page()
         self._build_process_page()
@@ -228,7 +224,10 @@ class ToolBoxTk:
 
         # 应用背景色
         self.root.configure(bg=COLORS["root_bg"])
-        self.status_bar.configure(bg=COLORS["status_bg"], fg=COLORS["status_fg"])
+        
+        # status_bar 已经存在，安全配置
+        if hasattr(self, 'status_bar') and self.status_bar:
+            self.status_bar.configure(bg=COLORS["status_bg"], fg=COLORS["status_fg"])
 
         # sv-ttk 已接管全局样式，这里只需要微调
         s.configure("TNotebook", background=COLORS["root_bg"], borderwidth=0)
